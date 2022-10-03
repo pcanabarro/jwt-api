@@ -8,7 +8,7 @@ class User {
     this.id = user.id;
     this.name = user.name;
     this.email = user.email;
-    this.hashPassword = user.password;
+    this.hashPassword = user.hashPassword;
 
     this.validate();
   }
