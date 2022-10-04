@@ -1,13 +1,14 @@
 const User = require('./users-model');
 const jwt = require('jsonwebtoken')
 const { InvalidArgumentError, InternalServerError } = require('../errors');
+const blacklist = require('../../redis/manipulateBlacklist')
 
 function createTokenJWT(user) {
   const payload = {
     id: user.id
   }
-  
-  const token = jwt.sign(payload, process.env.JWT_KEY, { expiresIn: '15m'})
+
+  const token = jwt.sign(payload, process.env.JWT_KEY, { expiresIn: '15m' })
   return token
 }
 
@@ -43,6 +44,17 @@ module.exports = {
     res.status(204).send()
   },
 
+  logout: async (req, res) => {
+    try {
+      console.log(`aaaa`)
+      const token = req.token
+      await blacklist.add(token)
+      res.status(204).send()
+    } catch (err) {
+      res.status(500).json({ error: err.message })
+    }
+  },
+
   list: async (req, res) => {
     const users = await User.list();
     res.json(users);
@@ -52,7 +64,7 @@ module.exports = {
     const user = await User.searchById(req.params.id);
     try {
       await user.delete();
-      res.status(200).json({data: "User deleted!"});
+      res.status(200).json({ data: "User deleted!" });
     } catch (err) {
       res.status(500).json({ error: err });
     }
